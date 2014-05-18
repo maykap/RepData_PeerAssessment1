@@ -2,19 +2,156 @@
 
 
 ## Loading and preprocessing the data
+```{r}
+setwd("~/Coursera/specdata")
+data<-read.csv("activity.csv")
+```
 
+## Exclude rows where the number of steps records are na or missing
+```{r}
+sanitizedData<-data[complete.cases(data),]
+```
 
+# Compute the Total Number of Steps Per Day
+```{r}
+aggregatedSum<-aggregate(sanitizedData$steps,by=list(sanitizedData$date),sum)
+```
 
-## What is mean total number of steps taken per day?
+# Histogram of  Total Number of Steps per day?
+```{r}
+h<-hist(aggregatedSum$x, breaks=10, col="red", xlab="Steps taken", main="Total Number of Steps Taken Per day")
+
+```
+
+# What is mean total number of steps taken per day?
+```{r}
+mean(aggregatedSum$x)
+```
+# What is median of total number of steps taken per day?
+```{r}
+median(aggregatedSum$x)
+```
+# Compute the Average Number of Steps Per Day By Date
+```{r}
+averagedDataByDate<-aggregate(sanitizedData$steps,by=list(sanitizedData$date),mean)
+averagedDataByDate
+```
+
+# Compute the Average Number of Steps Per Day By Interval
+```{r}
+averagedDataByInterval<-aggregate(sanitizedData$steps,by=list(sanitizedData$interval),mean)
+averagedDataByInterval
+```
 
 
 
 ## What is the average daily activity pattern?
+```{r}
+ plot(averagedDataByInterval$Group.1,averagedDataByInterval$x,type="l",xlab="5 Intervals",ylab="Average Number of Steps taken")
 
+```
+
+## 5 Minute Interval on Average across all days which contains maximum number of steps
+```{r}
+IntervalWithMaxSteps<-averagedDataByInterval[averagedDataByInterval$x == max(averagedDataByInterval$x), ]
+
+IntervalWithMaxSteps$Group.1
+```
 
 
 ## Imputing missing values
 
+## Total Number of Rows With Missing values In the data Set?
+```{r}
+ nrow(data) - nrow(sanitizedData)
+
+```
+
+# Replace all the missing values in the data set by the mean of steps taken per day
+```{r}
+ data$steps[is.na(data$steps)]<-mean(aggregatedSum$x)
+
+```
+
+
+# New Value of  Total Sum of Steps taken per day after filling in missing values 
+```{r}
+
+newaggregatedSum<-aggregate(data$steps,by=list(data$date),sum)
+newaggregatedSum
+
+```
+
+# Updated Histogram of  Total Number of Steps per day After adding missing values?
+```{r}
+h2<-hist(newaggregatedSum$x, breaks=10, col="red", xlab="Steps taken", main="Total Number of Steps Taken Per day")
+
+```
+
+# New Value of mean of Steps taken per day after filling in missing values 
+```{r}
+
+newaggregatedmean<-aggregate(data$steps,by=list(data$date),mean)
+newaggregatedmean
+
+```
+
+# New Value of Median of  Steps taken per day after filling in missing values 
+```{r}
+
+newaggregatedmedian<-aggregate(data$steps,by=list(data$date),median)
+newaggregatedmedian
+
+```
+# New Value of Median of  Steps taken per day after filling in missing values 
+Impact of imputing missing data on the data set causes the the total number of steps per date to go up higher.
+
+
+
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+#Add a factor column to the data set which has the missing values filled,6 and 0 imply Sundays and Saturdays respectively, so take those as the filters
+```{r}
+
+data$datetype<-factor(as.POSIXlt(data$date)$wday)
+
+```
+#Add a levels WeekDay and Weekend to the factor cloumn added above
+```{r}
+
+levels(data$datetype)[levels(data$datetype)==0] <- "Weekend"
+levels(data$datetype)[levels(data$datetype)==1] <- "Weekday"
+levels(data$datetype)[levels(data$datetype)==5] <- "Weekday"
+levels(data$datetype)[levels(data$datetype)==4] <- "Weekday"
+levels(data$datetype)[levels(data$datetype)==3] <- "Weekday"
+levels(data$datetype)[levels(data$datetype)==2] <- "Weekday"
+levels(data$datetype)[levels(data$datetype)==6] <- "Weekend"
+```
+
+#The value of the new factor column datetype added based on levels specified above
+stepsbyweekend
+
+#Calculate steps taken across all weekdays
+```{r}
+stepsbyweekday<-subset(data,datetype=="Weekday")
+stepsbyweekday
+```
+
+#Calculate steps taken across all weekends
+```{r}
+stepsbyweekend<-subset(data,datetype=="Weekend")
+stepsbyweekend
+```
+
+## What is he average daily activity pattern?
+```{r}
+
+
+ plot(stepsbyweekday$interval,stepsbyweekday$steps,type="l",xlab="5 min Intervals",ylab="Avg Number of Steps taken By weekday")
+
+ plot(stepsbyweekend$interval,stepsbyweekend$steps,type="l",xlab="5 min Intervals",ylab="Avg Number of Steps taken By weekend")
+
+```
+
